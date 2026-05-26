@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>Netflix Analytics Dashboard</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+  <header class="site-header py-3 mb-4">
+    <div class="container d-flex align-items-center justify-content-between">
+      <div class="brand d-flex align-items-center">
+        <div class="logo">N</div>
+        <div>
+          <h1 class="mb-0">S - Netflix</h1>
+          <small class="text-muted">Cinematic Analytics Dashboard</small>
+        </div>
+      </div>
+      <div class="header-search ms-3 flex-grow-1">
+        <input id="search" class="form-control" placeholder="Search shows by title">
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+
+    <div class="row g-3 mb-3 align-items-center">
+      <div class="col-sm-5 col-md-4">
+        <label class="form-label text-white fw-semibold">Filter by Rating</label>
+        <select id="rating" class="form-select">
+          <option value="All">All</option>
+        </select>
+      </div>
+      <div class="col-sm-4 col-md-5">
+        <label class="form-label text-white fw-semibold d-block">Search</label>
+        <input id="search2" class="form-control" placeholder="Search titles" />
+      </div>
+      <div class="col-sm-3 col-md-3 text-sm-end mt-2 mt-sm-0 d-flex justify-content-end align-items-end gap-2">
+        <button id="saveCsv" class="btn btn-outline-light btn-sm">Export CSV</button>
+        <small class="text-muted">Data: local JSON</small>
+      </div>
+    </div>
+
+    <!-- KPI CARDS -->
+    <div class="row stats mb-4">
+      <div class="col-12 col-md-4">
+        <div class="stat card text-bg-dark p-3">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Total Shows</h6>
+            <div class="h2 text-danger" id="total">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="stat card text-bg-dark p-3">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Average Rating</h6>
+            <div class="h2 text-danger" id="average">0</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-md-4">
+        <div class="stat card text-bg-dark p-3">
+          <div class="card-body">
+            <h6 class="card-title text-muted">Highest Rated</h6>
+            <div class="h6 text-white" id="top">N/A</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4 gx-3 align-items-stretch">
+      <div class="col-12">
+        <div class="card bg-dark p-3 text-white h-100">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <h5 class="mb-1">AI Prompt Integration</h5>
+              <small class="text-muted">Optional free AI key for richer prompt-driven insights</small>
+            </div>
+            <button id="saveAI" class="btn btn-sm btn-outline-light">Save</button>
+          </div>
+          <div class="row g-2">
+            <div class="col-12 col-md-5">
+              <label class="form-label small text-white-50" for="provider">AI Provider</label>
+              <select id="provider" class="form-select form-select-sm">
+                <option value="openai">OpenAI</option>
+                <option value="huggingface">Hugging Face</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-7">
+              <label class="form-label small text-white-50" for="key">API Key</label>
+              <input id="key" type="password" class="form-control form-control-sm" placeholder="Paste API key here" />
+            </div>
+          </div>
+          <div class="mt-3 small text-muted" id="status">No AI key configured. Insights will use local reasoning.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row mb-4">
+      <div class="col-12">
+        <div class="info-box card bg-dark p-3">
+          <div id="info" class="info-grid text-white"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS -->
+    <div class="row charts g-3">
+      <div class="col-12 col-xl-7">
+        <div class="panel card bg-dark p-3 text-white">
+          <div class="d-flex align-items-center justify-content-between mb-2 gap-2">
+            <h5 class="mb-0">Release Decades (Horizontal View)</h5>
+            <button id="b1" class="btn btn-sm btn-outline-light">Download Chart</button>
+          </div>
+          <div id="tags" class="tags mb-3"></div>
+          <canvas id="bar" style="max-height: 250px;"></canvas>
+        </div>
+      </div>
+
+      <div class="col-12 col-xl-5">
+        <div class="panel card bg-dark p-3 text-white now">
+          <h5 class="mb-3">Now Playing</h5>
+          <div class="d-flex gap-2 gap-md-3 align-items-center">
+            <img id="pic" src="https://picsum.photos/seed/now/160/240" alt="poster" style="width:80px;height:120px;object-fit:cover;border-radius:6px;">
+            <div style="flex:1;min-width:0">
+              <h6 id="nowTitle" class="text-truncate">Inception</h6>
+              <div id="nowMeta" class="text-muted small">PG-13 • 2010 • 92</div>
+              <p id="nowNote" class="small text-muted mt-1" style="max-height:60px;overflow:hidden">A mind-bending thriller.</p>
+              <div class="mt-2 d-flex gap-1">
+                <button id="nextBtn" class="btn btn-sm btn-light">Next</button>
+                <button id="playBtn" class="btn btn-sm btn-outline-light">Play</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="panel card bg-dark p-3 text-white">
+          <div class="d-flex align-items-center justify-content-between mb-2 gap-2">
+            <h5 class="mb-0">Release Decades Distribution</h5>
+            <button id="b2" class="btn btn-sm btn-outline-light">Download Chart</button>
+          </div>
+          <canvas id="pie" style="max-height: 280px;"></canvas>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="panel card bg-dark p-3 text-white">
+          <div class="d-flex align-items-center justify-content-between mb-2 gap-2">
+            <h5 class="mb-0">Average Ratings by Year</h5>
+            <button id="b3" class="btn btn-sm btn-outline-light">Download Chart</button>
+          </div>
+          <canvas id="line" style="max-height: 280px;"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel card bg-dark text-white p-3 mb-4">
+      <h5 class="mb-3">Dataset Query Results</h5>
+      <div id="list" class="row g-3"></div>
+    <!-- INSIGHTS (AI-GENERATED) -->
+    <div class="panel card bg-dark text-white p-3 mt-4">
+      <h5 class="mb-2">Real Time Analytics</h5>
+      <div class="row g-2">
+        <div class="col-12 col-md-4">
+          <div class="note p-2 rounded">
+            <strong class="text-warning">Query 1: Rating Distribution</strong><br>
+            <small id="a1">Analyzing content ratings...</small>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="note p-2 rounded">
+            <strong class="text-warning">Query 2: Decade Performance</strong><br>
+            <small id="a2">Analyzing decade trends...</small>
+          </div>
+        </div>
+        <div class="col-12 col-md-4">
+          <div class="note p-2 rounded">
+            <strong class="text-warning">Query 3: Maturity Analysis</strong><br>
+            <small id="a3">Analyzing content maturity...</small>
+          </div>
+        </div>
+        <div class="col-12">
+          <div class="note p-2 rounded">
+            <strong class="text-warning">Summary:</strong><br>
+            <small id="summary">Generating AI insights from dataset...</small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
